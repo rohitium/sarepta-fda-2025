@@ -230,10 +230,10 @@ export function ChatInterface({ onSendMessage, isLoading = false, sessionId }: C
               <div className="text-sm text-gray-600">
                 <p className="mb-2 font-medium">Try asking:</p>
                 <ul className="text-left space-y-1">
-                  <li>• "What safety concerns were raised about Elevidys?"</li>
-                  <li>• "What was the FDA's approval rationale?"</li>
-                  <li>• "What were the clinical trial results?"</li>
-                  <li>• "How did Sarepta respond to regulatory scrutiny?"</li>
+                  <li>• &quot;What safety concerns were raised about Elevidys?&quot;</li>
+                  <li>• &quot;What was the FDA&apos;s approval rationale?&quot;</li>
+                  <li>• &quot;What were the clinical trial results?&quot;</li>
+                  <li>• &quot;How did Sarepta respond to regulatory scrutiny?&quot;</li>
                 </ul>
               </div>
             </div>

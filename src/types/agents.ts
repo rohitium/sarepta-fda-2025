@@ -1,5 +1,5 @@
 import { Document, DocumentChunk, SearchResult } from './documents';
-import { ChatMessage, Citation } from './chat';
+import { Citation } from './chat';
 
 export interface BaseAgentConfig {
   id: string;
@@ -9,11 +9,11 @@ export interface BaseAgentConfig {
   priority: number;
 }
 
-export interface AgentResponse<T = any> {
+export interface AgentResponse<T = unknown> {
   success: boolean;
   data?: T;
   error?: string;
-  metadata?: Record<string, any>;
+  metadata?: Record<string, unknown>;
   timestamp: Date;
   agentId: string;
 }
@@ -21,7 +21,7 @@ export interface AgentResponse<T = any> {
 export interface BaseAgent {
   readonly config: BaseAgentConfig;
   initialize(): Promise<void>;
-  execute(input: any): Promise<AgentResponse>;
+  execute(input: unknown): Promise<AgentResponse>;
   cleanup(): Promise<void>;
   getStatus(): AgentStatus;
 }
@@ -127,8 +127,8 @@ export interface OrchestratorOptions {
 export interface ProcessingStep {
   agent: string;
   action: string;
-  input: any;
-  output: any;
+  input: unknown;
+  output: unknown;
   timeMs: number;
   success: boolean;
   error?: string;

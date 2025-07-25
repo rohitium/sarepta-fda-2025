@@ -1,6 +1,6 @@
 import { BaseAgent } from './BaseAgent';
 import { DocumentProcessingInput, DocumentProcessingOutput, AgentResponse } from '../types/agents';
-import { Document, DocumentChunk } from '../types/documents';
+import { Document, DocumentChunk, ProcessedDocument } from '../types/documents';
 
 export class DocumentProcessor extends BaseAgent {
   private processedDocuments: Map<string, DocumentChunk[]> = new Map();
@@ -24,11 +24,11 @@ export class DocumentProcessor extends BaseAgent {
       });
     } catch (error) {
       const errorMessage = error instanceof Error ? error.message : 'Unknown processing error';
-      return this.createErrorResponse(errorMessage);
+      return this.createErrorResponse(errorMessage) as AgentResponse<DocumentProcessingOutput>;
     }
   }
 
-  private async processDocuments(documents: Document[]): Promise<any[]> {
+  private async processDocuments(documents: Document[]): Promise<ProcessedDocument[]> {
     const results = [];
     
     for (const document of documents) {

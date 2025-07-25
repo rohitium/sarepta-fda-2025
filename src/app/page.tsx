@@ -81,7 +81,7 @@ export default function HomePage() {
       };
 
       return response;
-    } catch (error) {
+    } catch (_error) {
       // Fallback error message
       const errorMessage: ChatMessage = {
         id: `error_${Date.now()}`,

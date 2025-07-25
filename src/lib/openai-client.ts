@@ -1,4 +1,4 @@
-import OpenAI from 'openai';
+// OpenAI import removed - using secure server-side API route instead
 
 class OpenAIClient {
   private static instance: OpenAIClient;
@@ -14,7 +14,7 @@ class OpenAIClient {
     return OpenAIClient.instance;
   }
 
-  async generateEmbedding(text: string): Promise<number[]> {
+  async generateEmbedding(_text: string): Promise<number[]> {
     // Return mock embedding vector (1536 dimensions for text-embedding-3-large)
     // Embeddings aren't critical for the demo - search works with concept mapping
     return Array.from({ length: 1536 }, () => Math.random() * 2 - 1);
@@ -66,7 +66,7 @@ class OpenAIClient {
 
   async generateStreamedCompletion(
     messages: Array<{ role: 'system' | 'user' | 'assistant'; content: string }>,
-    options: {
+    _options: {
       model?: string;
       temperature?: number;
       maxTokens?: number;

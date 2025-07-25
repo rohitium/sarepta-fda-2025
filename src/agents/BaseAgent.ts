@@ -10,7 +10,7 @@ export abstract class BaseAgent implements IBaseAgent {
   }
 
   abstract initialize(): Promise<void>;
-  abstract execute(input: any): Promise<AgentResponse>;
+  abstract execute(input: unknown): Promise<AgentResponse>;
 
   async cleanup(): Promise<void> {
     this.status = AgentStatus.IDLE;
@@ -34,7 +34,7 @@ export abstract class BaseAgent implements IBaseAgent {
     return this.lastError;
   }
 
-  protected createSuccessResponse<T>(data: T, metadata?: Record<string, any>): AgentResponse<T> {
+  protected createSuccessResponse<T>(data: T, metadata?: Record<string, unknown>): AgentResponse<T> {
     return {
       success: true,
       data,
@@ -44,7 +44,7 @@ export abstract class BaseAgent implements IBaseAgent {
     };
   }
 
-  protected createErrorResponse(error: string, metadata?: Record<string, any>): AgentResponse {
+  protected createErrorResponse(error: string, metadata?: Record<string, unknown>): AgentResponse {
     return {
       success: false,
       error,
@@ -68,8 +68,8 @@ export abstract class BaseAgent implements IBaseAgent {
     }
   }
 
-  protected log(level: 'info' | 'warn' | 'error', message: string, data?: any): void {
-    const logData = {
+  protected log(level: 'info' | 'warn' | 'error', message: string, data?: Record<string, unknown>): void {
+    const _logData = {
       agent: this.config.id,
       level,
       message,
@@ -108,7 +108,7 @@ export abstract class BaseAgent implements IBaseAgent {
     });
   }
 
-  protected validateInput(input: any, requiredFields: string[]): void {
+  protected validateInput(input: Record<string, unknown>, requiredFields: string[]): void {
     if (!input) {
       throw new Error('Input is required');
     }

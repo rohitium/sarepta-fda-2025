@@ -8,7 +8,7 @@ const openai = process.env.OPENAI_API_KEY ? new OpenAI({
 
 export async function POST(request: NextRequest) {
   try {
-    const { messages, query } = await request.json();
+    const { messages } = await request.json();
     
     // If no API key, return error to trigger fallback
     if (!openai) {

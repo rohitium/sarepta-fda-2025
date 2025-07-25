@@ -6,8 +6,8 @@ import {
   AgentResponse,
   ProcessingStep
 } from '../types/agents';
-import { ChatMessage, MessageRole, Citation } from '../types/chat';
-import { Document } from '../types/documents';
+import { Citation } from '../types/chat';
+import { Document, DocumentChunk } from '../types/documents';
 import openaiClient from '../lib/openai-client';
 
 export class Orchestrator extends BaseAgent {
@@ -57,7 +57,7 @@ export class Orchestrator extends BaseAgent {
       steps.push(searchStep);
       
       // Step 3: Generate analysis (which now includes citations)
-      const analysisStep = await this.generateAnalysis(input.query, searchStep.output);
+      const analysisStep = await this.generateAnalysis(input.query, searchStep.output as { chunks?: DocumentChunk[] });
       steps.push(analysisStep);
       
       // Get citations from analysis step
@@ -108,7 +108,7 @@ export class Orchestrator extends BaseAgent {
     }
   }
 
-  private async generateAnalysis(query: string, searchResults: any): Promise<ProcessingStep> {
+  private async generateAnalysis(query: string, searchResults: { chunks?: DocumentChunk[] }): Promise<ProcessingStep> {
     const startTime = Date.now();
     
     try {
