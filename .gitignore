@@ -104,8 +104,7 @@ dist/
 tmp/
 temp/
 
-# Lock files (to avoid conflicts)
-package-lock.json
+# Lock files (to avoid conflicts) - keep package-lock.json for deployment
 yarn.lock
 pnpm-lock.yaml
 
