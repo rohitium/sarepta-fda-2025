@@ -5,6 +5,11 @@ import { Send, Loader2, FileText } from 'lucide-react';
 import { ChatMessage, MessageRole, SendMessageRequest, Citation } from '../types/chat';
 import PDFViewer from './PDFViewer';
 
+// Helper function to escape regex special characters
+const escapeRegex = (string: string): string => {
+  return string.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+};
+
 interface ChatInterfaceProps {
   onSendMessage: (request: SendMessageRequest) => Promise<ChatMessage>;
   isLoading?: boolean;
@@ -70,85 +75,90 @@ export function ChatInterface({ onSendMessage, isLoading = false, sessionId }: C
     }
   };
 
-  const renderCitation = (citation: Citation) => {
-    return (
-      <button
-        key={citation.id}
-        onClick={() => {
-          // Extract filename from citation data
-          let filename = '';
-          if (citation.url && citation.url.includes('/')) {
-            // Extract filename from URL
-            filename = decodeURIComponent(citation.url.split('/').pop() || '');
-          } else {
-            // Fallback: construct filename from document ID
-            filename = `${citation.documentId}.pdf`;
-          }
-          
-          // Open PDF in viewer modal
-          setSelectedPDF({
-            filename: filename,
-            title: citation.documentTitle
-          });
-        }}
-        className="inline-flex items-center gap-1 px-2 py-1 text-xs bg-blue-50 hover:bg-blue-100 
-                   border border-blue-200 rounded-md text-blue-700 transition-colors"
-        title={`${citation.documentTitle} - Pages ${citation.pageNumbers.join(', ')}`}
-      >
-        <FileText className="w-3 h-3" />
-        {citation.shortName || `${citation.category} Doc`}
-      </button>
-    );
-  };
+
 
   const renderMessageContent = (content: string, citations: Citation[] = [], isUserMessage: boolean = false) => {
     if (!citations || citations.length === 0 || isUserMessage) {
       return <div className="whitespace-pre-wrap">{content}</div>;
     }
 
-    // Create a map of citation short names to citation objects
-    const citationMap = new Map<string, Citation>();
-    citations.forEach(citation => {
-      if (citation.shortName) {
-        citationMap.set(citation.shortName, citation);
+    // Create numbered citation references based on citation order
+    const citationNumbers = new Map<string, number>();
+    citations.forEach((citation, index) => {
+      const key = citation.shortName || citation.documentId;
+      if (!citationNumbers.has(key)) {
+        citationNumbers.set(key, index + 1);
       }
     });
 
-    // Parse inline citations and replace with clickable elements
+    // Replace inline citations with numbered references
+    let processedContent = content;
+    
+    // Handle various citation formats and replace with numbers
+    citations.forEach((citation, index) => {
+      const citationNumber = index + 1;
+      const key = citation.shortName || citation.documentId;
+      
+      // Replace citation mentions with numbered format
+      if (citation.shortName) {
+        const patterns = [
+          new RegExp(`\\[${escapeRegex(citation.shortName)}\\]`, 'gi'),
+          new RegExp(`\\b${escapeRegex(citation.shortName)}\\b`, 'gi')
+        ];
+        
+        patterns.forEach(pattern => {
+          processedContent = processedContent.replace(pattern, `[${citationNumber}]`);
+        });
+      }
+    });
+
+    // Parse content and make numbered citations clickable
     const parts = [];
     let lastIndex = 0;
     
-    // Find all citations in the format [citation name] or [citation1, citation2]
-    const citationRegex = /\[([^\]]+)\]/g;
+    const numberRegex = /\[(\d+(?:,\s*\d+)*)\]/g;
     let match;
     
-    while ((match = citationRegex.exec(content)) !== null) {
+    while ((match = numberRegex.exec(processedContent)) !== null) {
       // Add text before the citation
       if (match.index > lastIndex) {
-        parts.push(content.slice(lastIndex, match.index));
+        parts.push(processedContent.slice(lastIndex, match.index));
       }
       
-      // Parse the citation(s) inside the brackets
+      // Parse the citation numbers inside the brackets
       const citationText = match[1];
-      const citationNames = citationText.split(',').map(name => name.trim());
+      const citationNumbers = citationText.split(',').map(num => parseInt(num.trim()));
       
-      // Create clickable citation links
-      const citationElements = citationNames.map((name, index) => {
-        const citation = citationMap.get(name);
+      // Create clickable numbered citation links
+      const citationElements = citationNumbers.map((num, index) => {
+        const citation = citations[num - 1]; // Convert to 0-based index
         if (citation) {
           return (
             <button
               key={`${citation.id}-${index}`}
-              onClick={() => window.open(citation.url, '_blank')}
-              className="inline-flex items-center px-1 py-0.5 text-xs bg-blue-600 hover:bg-blue-700 
-                         border border-blue-500 rounded text-white transition-colors mx-0.5"
+              onClick={() => {
+                // Extract filename from citation data
+                let filename = '';
+                if (citation.url && citation.url.includes('/')) {
+                  filename = decodeURIComponent(citation.url.split('/').pop() || '');
+                } else {
+                  filename = `${citation.documentId}.pdf`;
+                }
+                
+                // Open PDF in viewer modal
+                setSelectedPDF({
+                  filename: filename,
+                  title: citation.documentTitle
+                });
+              }}
+              className="inline text-blue-600 hover:text-blue-800 font-medium"
               title={`${citation.documentTitle} - Pages ${citation.pageNumbers.join(', ')}`}
             >
-              {name}
+              {num}
             </button>
           );
         }
-        return <span key={index} className="text-blue-200">{name}</span>;
+        return <span key={index} className="text-gray-400">{num}</span>;
       });
       
       parts.push(
@@ -193,12 +203,44 @@ export function ChatInterface({ onSendMessage, isLoading = false, sessionId }: C
         {renderMessageContent(message.content, message.citations, message.role === MessageRole.USER)}
         
         {message.citations && message.citations.length > 0 && (
-          <div className="mt-3 pt-3 border-t border-gray-300">
-            <div className="text-xs font-medium text-gray-700 mb-2">
-              All Sources ({message.citations.length}):
+          <div className="mt-4 pt-3 border-t border-gray-300">
+            <div className="text-sm font-semibold text-gray-800 mb-3">
+              References:
             </div>
-            <div className="flex flex-wrap gap-2">
-              {message.citations.map(renderCitation)}
+            <div className="space-y-2">
+              {message.citations.map((citation, index) => (
+                <div key={citation.id} className="flex gap-2 text-sm">
+                  <span className="text-gray-600 font-medium min-w-[1.5rem]">
+                    [{index + 1}]
+                  </span>
+                  <button
+                    onClick={() => {
+                      // Extract filename from citation data
+                      let filename = '';
+                      if (citation.url && citation.url.includes('/')) {
+                        filename = decodeURIComponent(citation.url.split('/').pop() || '');
+                      } else {
+                        filename = `${citation.documentId}.pdf`;
+                      }
+                      
+                      // Open PDF in viewer modal
+                      setSelectedPDF({
+                        filename: filename,
+                        title: citation.documentTitle
+                      });
+                    }}
+                    className="text-left text-blue-700 hover:text-blue-900 hover:underline flex-1"
+                    title={`Pages ${citation.pageNumbers.join(', ')}`}
+                  >
+                    <span className="font-medium">{citation.documentTitle}</span>
+                    {citation.pageNumbers.length > 0 && (
+                      <span className="text-gray-600 ml-1">
+                        (pp. {citation.pageNumbers.join(', ')})
+                      </span>
+                    )}
+                  </button>
+                </div>
+              ))}
             </div>
           </div>
         )}

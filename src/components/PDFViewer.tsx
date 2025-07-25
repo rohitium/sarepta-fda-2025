@@ -21,14 +21,13 @@ export default function PDFViewer({ filename, title, isOpen, onClose }: PDFViewe
   const pdfUrl = `${basePath}/pdf/${encodeURIComponent(filename)}`;
   const downloadUrl = pdfUrl; // Same URL for download
 
-  // Automatically show fallback after a short delay for better UX
+  // Reset state when modal opens
   useEffect(() => {
-    const timer = setTimeout(() => {
-      setViewerError(true);
-    }, 3000); // Show fallback after 3 seconds if iframe hasn't loaded
-
-    return () => clearTimeout(timer);
-  }, []);
+    if (isOpen) {
+      setViewerError(false);
+      setIsLoading(true);
+    }
+  }, [isOpen]);
 
   const handleIframeError = () => {
     setViewerError(true);
@@ -37,7 +36,7 @@ export default function PDFViewer({ filename, title, isOpen, onClose }: PDFViewe
 
   const handleIframeLoad = () => {
     setIsLoading(false);
-    // Don't automatically set error on load - let the timer handle it
+    // PDF loaded successfully, keep showing iframe
   };
 
   return (
