@@ -11,20 +11,20 @@ An app for analyzing FDA documents, clinical studies, press reports, and SEC fil
 ## ✨ Features
 
 - **🤖 Multi-Agent AI System** - Specialized agents for document processing, retrieval, analysis, and citation
-- **📄 Document Collection** - 45+ documents across 5 categories
-- **🔍 Search** - Enhanced semantic search with concept mapping
+- **📄 Document Collection** - 51 documents across 5 categories
+- **🔍 Document Search** - Semantic search with concept mapping
 - **📎 Citations** - Professional journal-style citations with clickable PDF access
 - **📱 Modern UI** - Clean, responsive interface built with Next.js and Tailwind CSS
 
 ## 📊 Document Collection
 
-| Category | Count | Icon | Examples |
-|----------|-------|------|----------|
-| **FDA Documents** | 19 | 🏛️ | Clinical Reviews, Approval Letters, Safety Memos |
-| **Publications** | 18 | 📚 | Clinical Studies, EMBARK Trial Results, Safety Analyses |
-| **Press Reports** | 4 | 📰 | Regulatory Actions, Safety Alerts, Market Response |
-| **SEC Filings** | 2 | 💼 | 10-K Reports, 8-K Filings |
-| **Abstracts** | 2 | 📋 | Conference Abstracts, Research Summaries |
+| Category | Count | Examples |
+|----------|-------|----------|
+| **🏛️ FDA Documents** | 24 | Clinical Reviews, Approval Letters, Safety Memos |
+| **📚 Publications** | 19 | Clinical Studies, EMBARK Trial Results, Safety Analyses |
+| **📰 Press Reports** | 4 | Regulatory Actions, Safety Alerts, Market Response |
+| **💼 SEC Filings** | 2 | 10-K Reports, 8-K Filings |
+| **📋 Abstracts** | 2 | Research Summaries |
 
 ## 🛠️ Quick Start
 
@@ -46,7 +46,7 @@ cp env.template .env.local
 npm run dev
 ```
 
-Visit `http://localhost:3000` and start analyzing!
+Visit `http://localhost:3000` and spin this app locally!
 
 ## 🌐 Deploy to GitHub Pages
 
@@ -136,7 +136,7 @@ sarepta-fda-2025/
 
 ## 🎨 Key Features
 
-### Enhanced Search System
+### Search System
 - **Concept Mapping** - Maps queries to domain-specific terms
 - **Document Type Boosting** - Prioritizes relevant document categories
 - **Semantic Understanding** - Goes beyond keyword matching
