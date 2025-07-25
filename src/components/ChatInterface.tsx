@@ -3,6 +3,7 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { Send, Loader2, FileText } from 'lucide-react';
 import { ChatMessage, MessageRole, SendMessageRequest, Citation } from '../types/chat';
+import PDFViewer from './PDFViewer';
 
 interface ChatInterfaceProps {
   onSendMessage: (request: SendMessageRequest) => Promise<ChatMessage>;
@@ -13,6 +14,7 @@ interface ChatInterfaceProps {
 export function ChatInterface({ onSendMessage, isLoading = false, sessionId }: ChatInterfaceProps) {
   const [messages, setMessages] = useState<ChatMessage[]>([]);
   const [input, setInput] = useState('');
+  const [selectedPDF, setSelectedPDF] = useState<{filename: string, title: string} | null>(null);
   const [isProcessing, setIsProcessing] = useState(false);
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
@@ -73,17 +75,21 @@ export function ChatInterface({ onSendMessage, isLoading = false, sessionId }: C
       <button
         key={citation.id}
         onClick={() => {
-          // Use the URL from citation if available, otherwise construct it
-          let pdfUrl = '';
-          if (citation.url) {
-            pdfUrl = citation.url;
+          // Extract filename from citation data
+          let filename = '';
+          if (citation.url && citation.url.includes('/')) {
+            // Extract filename from URL
+            filename = decodeURIComponent(citation.url.split('/').pop() || '');
           } else {
-            // Fallback: construct URL from document ID
-            pdfUrl = `pdf/${encodeURIComponent(citation.documentId)}.pdf`;
+            // Fallback: construct filename from document ID
+            filename = `${citation.documentId}.pdf`;
           }
           
-          // Open PDF in new tab
-          window.open(pdfUrl, '_blank');
+          // Open PDF in viewer modal
+          setSelectedPDF({
+            filename: filename,
+            title: citation.documentTitle
+          });
         }}
         className="inline-flex items-center gap-1 px-2 py-1 text-xs bg-blue-50 hover:bg-blue-100 
                    border border-blue-200 rounded-md text-blue-700 transition-colors"
@@ -284,6 +290,16 @@ export function ChatInterface({ onSendMessage, isLoading = false, sessionId }: C
           </button>
         </form>
       </div>
+      
+      {/* PDF Viewer Modal */}
+      {selectedPDF && (
+        <PDFViewer
+          filename={selectedPDF.filename}
+          title={selectedPDF.title}
+          isOpen={!!selectedPDF}
+          onClose={() => setSelectedPDF(null)}
+        />
+      )}
     </div>
   );
 } 
