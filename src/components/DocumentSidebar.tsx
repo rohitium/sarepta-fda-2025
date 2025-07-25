@@ -49,8 +49,8 @@ export function DocumentSidebar({ documents, onDocumentSelect }: DocumentSidebar
   };
 
   const handleDocumentClick = (document: Document) => {
-    // Open PDF in new tab
-    window.open(`pdf/${document.filename}`, '_blank');
+    // Open PDF in new tab with properly encoded filename
+    window.open(`pdf/${encodeURIComponent(document.filename)}`, '_blank');
     
     // Notify parent component
     onDocumentSelect?.(document);
