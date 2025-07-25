@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { X, Download, ExternalLink } from 'lucide-react';
 
 interface PDFViewerProps {
@@ -12,14 +12,30 @@ interface PDFViewerProps {
 
 export default function PDFViewer({ filename, title, isOpen, onClose }: PDFViewerProps) {
   const [viewerError, setViewerError] = useState(false);
+  const [isLoading, setIsLoading] = useState(true);
   
   if (!isOpen) return null;
 
   const pdfUrl = `pdf/${encodeURIComponent(filename)}`;
   const downloadUrl = pdfUrl; // Same URL for download
 
+  // Automatically show fallback after a short delay for better UX
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      setViewerError(true);
+    }, 3000); // Show fallback after 3 seconds if iframe hasn't loaded
+
+    return () => clearTimeout(timer);
+  }, []);
+
   const handleIframeError = () => {
     setViewerError(true);
+    setIsLoading(false);
+  };
+
+  const handleIframeLoad = () => {
+    setIsLoading(false);
+    // Don't automatically set error on load - let the timer handle it
   };
 
   return (
@@ -55,49 +71,59 @@ export default function PDFViewer({ filename, title, isOpen, onClose }: PDFViewe
         </div>
 
         {/* PDF Content */}
-        <div className="flex-1 bg-gray-100">
+        <div className="flex-1 bg-gray-100 relative">
           {!viewerError ? (
-            <iframe
-              src={`${pdfUrl}#toolbar=1&navpanes=1&scrollbar=1&page=1&view=FitH`}
-              className="w-full h-full border-0"
-              title={title}
-              onError={handleIframeError}
-              onLoad={(e) => {
-                // Check if iframe loaded properly
-                try {
-                  const iframe = e.target as HTMLIFrameElement;
-                  if (!iframe.contentDocument && !iframe.contentWindow) {
-                    setViewerError(true);
-                  }
-                } catch (error) {
-                  setViewerError(true);
-                }
-              }}
-            />
+            <>
+              {isLoading && (
+                <div className="absolute inset-0 flex items-center justify-center bg-gray-100 z-10">
+                  <div className="text-center">
+                    <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600 mx-auto mb-2"></div>
+                    <p className="text-gray-600">Loading PDF...</p>
+                  </div>
+                </div>
+              )}
+              <iframe
+                src={pdfUrl}
+                className="w-full h-full border-0"
+                title={title}
+                onError={handleIframeError}
+                onLoad={handleIframeLoad}
+              />
+            </>
           ) : (
             // Fallback view when iframe fails
             <div className="flex flex-col items-center justify-center h-full p-8 text-center">
-              <div className="bg-red-50 border border-red-200 rounded-lg p-6 max-w-md">
-                <h3 className="text-lg font-semibold text-red-800 mb-2">PDF Viewer Unavailable</h3>
-                <p className="text-red-600 mb-4">
-                  Unable to display PDF in browser. This may be due to browser security settings or PDF format compatibility.
-                </p>
-                <div className="space-y-2">
+              <div className="bg-blue-50 border border-blue-200 rounded-lg p-8 max-w-lg w-full">
+                <div className="mb-4">
+                  <div className="w-16 h-16 bg-blue-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                    <ExternalLink size={24} className="text-blue-600" />
+                  </div>
+                  <h3 className="text-xl font-semibold text-blue-900 mb-2">Open PDF Document</h3>
+                  <p className="text-blue-700 mb-1 font-medium">{title}</p>
+                  <p className="text-blue-600 text-sm mb-6">
+                    Click below to view this document. PDFs work best when opened directly in your browser or downloaded.
+                  </p>
+                </div>
+                <div className="space-y-3">
                   <button
                     onClick={() => window.open(downloadUrl, '_blank')}
-                    className="w-full bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 flex items-center justify-center space-x-2"
+                    className="w-full bg-blue-600 text-white px-6 py-3 rounded-lg hover:bg-blue-700 flex items-center justify-center space-x-2 font-medium"
                   >
-                    <ExternalLink size={16} />
+                    <ExternalLink size={18} />
                     <span>Open in New Tab</span>
                   </button>
                   <a
                     href={downloadUrl}
                     download={filename}
-                    className="w-full bg-gray-600 text-white px-4 py-2 rounded-lg hover:bg-gray-700 flex items-center justify-center space-x-2"
+                    className="w-full bg-gray-600 text-white px-6 py-3 rounded-lg hover:bg-gray-700 flex items-center justify-center space-x-2 font-medium no-underline"
                   >
-                    <Download size={16} />
+                    <Download size={18} />
                     <span>Download PDF</span>
                   </a>
+                  <p className="text-xs text-gray-500 mt-4">
+                    Note: Some browsers may block PDF embedding for security reasons. 
+                    Opening in a new tab provides the best viewing experience.
+                  </p>
                 </div>
               </div>
             </div>
