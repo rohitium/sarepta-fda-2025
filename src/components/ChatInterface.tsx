@@ -94,22 +94,58 @@ export function ChatInterface({ onSendMessage, isLoading = false, sessionId }: C
     // Replace inline citations with numbered references
     let processedContent = content;
     
-    // Handle various citation formats and replace with numbers
-    citations.forEach((citation, index) => {
-      const citationNumber = index + 1;
-      const key = citation.shortName || citation.documentId;
+    // First, handle grouped citations in brackets [citation1, citation2, citation3]
+    const groupedCitationRegex = /\[([^\]]+)\]/g;
+    let groupMatch;
+    const processedRanges: Array<{start: number, end: number, replacement: string}> = [];
+    
+    while ((groupMatch = groupedCitationRegex.exec(content)) !== null) {
+      const citationGroup = groupMatch[1];
+      const citationParts = citationGroup.split(',').map(part => part.trim());
       
-      // Replace citation mentions with numbered format
-      if (citation.shortName) {
-        const patterns = [
-          new RegExp(`\\[${escapeRegex(citation.shortName)}\\]`, 'gi'),
-          new RegExp(`\\b${escapeRegex(citation.shortName)}\\b`, 'gi')
-        ];
-        
-        patterns.forEach(pattern => {
-          processedContent = processedContent.replace(pattern, `[${citationNumber}]`);
+      // Try to match each part to a citation
+      const matchedNumbers: number[] = [];
+      
+      citationParts.forEach(part => {
+        citations.forEach((citation, index) => {
+          const citationNumber = index + 1;
+          
+          // Check if this part matches any citation identifier
+          const possibleIdentifiers = [
+            citation.shortName,
+            citation.documentTitle,
+            citation.documentId,
+            citation.documentTitle?.substring(0, 50),
+            citation.documentTitle?.split(' - ')[0],
+            citation.documentTitle?.split('.')[0],
+          ].filter(Boolean);
+          
+          for (const identifier of possibleIdentifiers) {
+            if (identifier && part.toLowerCase().includes(identifier.toLowerCase())) {
+              if (!matchedNumbers.includes(citationNumber)) {
+                matchedNumbers.push(citationNumber);
+              }
+              break;
+            }
+          }
+        });
+      });
+      
+      // If we found matching citations, prepare replacement
+      if (matchedNumbers.length > 0) {
+        const replacement = `[${matchedNumbers.join(', ')}]`;
+        processedRanges.push({
+          start: groupMatch.index,
+          end: groupMatch.index + groupMatch[0].length,
+          replacement: replacement
         });
       }
+    }
+    
+    // Apply replacements from right to left to preserve indices
+    processedRanges.sort((a, b) => b.start - a.start);
+    processedRanges.forEach(range => {
+      processedContent = processedContent.slice(0, range.start) + range.replacement + processedContent.slice(range.end);
     });
 
     // Parse content and make numbered citations clickable
