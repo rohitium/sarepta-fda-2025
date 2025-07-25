@@ -168,7 +168,7 @@ export class Orchestrator extends BaseAgent {
           temperature: 0.1,
           maxTokens: 1500
         });
-      } catch (apiError) {
+      } catch (_apiError) {
         // Fallback to intelligent mock response with inline citations
         response = this.generateIntelligentFallback(query, searchResults.chunks || [], citations);
       }
@@ -194,7 +194,7 @@ export class Orchestrator extends BaseAgent {
     }
   }
 
-  private buildContext(chunks: any[], citations: Citation[]): string {
+  private buildContext(chunks: DocumentChunk[], citations: Citation[]): string {
     if (!chunks || chunks.length === 0) {
       return "No specific document context available.";
     }

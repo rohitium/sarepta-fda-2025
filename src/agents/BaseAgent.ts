@@ -69,13 +69,19 @@ export abstract class BaseAgent implements IBaseAgent {
   }
 
   protected log(level: 'info' | 'warn' | 'error', message: string, data?: Record<string, unknown>): void {
-    const _logData = {
+    // Log data is prepared but not used in demo mode
+    const logData = {
       agent: this.config.id,
       level,
       message,
       timestamp: new Date().toISOString(),
       ...(data && { data })
     };
+    
+    // Use logData to avoid unused variable warning
+    if (process.env.NODE_ENV === 'development') {
+      console.log(logData);
+    }
 
     switch (level) {
       case 'error':
