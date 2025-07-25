@@ -16,7 +16,9 @@ export default function PDFViewer({ filename, title, isOpen, onClose }: PDFViewe
   
   if (!isOpen) return null;
 
-  const pdfUrl = `pdf/${encodeURIComponent(filename)}`;
+  // Use absolute path with basePath for GitHub Pages
+  const basePath = process.env.NODE_ENV === 'production' ? '/sarepta-fda-2025' : '';
+  const pdfUrl = `${basePath}/pdf/${encodeURIComponent(filename)}`;
   const downloadUrl = pdfUrl; // Same URL for download
 
   // Automatically show fallback after a short delay for better UX

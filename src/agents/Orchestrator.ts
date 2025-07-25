@@ -344,7 +344,7 @@ The regulatory scrutiny and safety concerns have had significant implications${c
         documentTitle,
         pageNumbers: chunk.metadata?.pageNumbers || [1],
         content: chunk.content?.substring(0, 200) + '...' || 'Content excerpt...',
-        url: `pdf/${encodeURIComponent(filename)}`,
+        url: `${process.env.NODE_ENV === 'production' ? '/sarepta-fda-2025' : ''}/pdf/${encodeURIComponent(filename)}`,
         category,
         shortName, // Add shortened name for inline citations
         relevanceScore: 0.9 - (index * 0.05) // Smaller decrement for more sources

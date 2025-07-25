@@ -116,7 +116,7 @@ export function loadAllDocuments(): Document[] {
     title: generateTitle(filename),
     filename,
     category: getCategoryFromFilename(filename),
-          path: `pdf/${encodeURIComponent(filename)}`, // Properly encode URL for spaces
+          path: `${process.env.NODE_ENV === 'production' ? '/sarepta-fda-2025' : ''}/pdf/${encodeURIComponent(filename)}`, // Use basePath for GitHub Pages
     size: getEstimatedFileSize(filename),
     processed: false,
     uploadDate: new Date('2024-07-24'), // Use repository date
