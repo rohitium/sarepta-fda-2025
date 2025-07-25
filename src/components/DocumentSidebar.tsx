@@ -3,6 +3,7 @@
 import React, { useState } from 'react';
 import { FileText, Search, Filter, ExternalLink } from 'lucide-react';
 import { Document, DocumentCategory } from '../types/documents';
+import PDFViewer from './PDFViewer';
 
 interface DocumentSidebarProps {
   documents: Document[];
@@ -13,6 +14,7 @@ export function DocumentSidebar({ documents, onDocumentSelect }: DocumentSidebar
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedCategory, setSelectedCategory] = useState<DocumentCategory | 'all'>('all');
   const [isExpanded, setIsExpanded] = useState(true);
+  const [selectedPDF, setSelectedPDF] = useState<Document | null>(null);
 
   // Filter documents based on search and category
   const filteredDocuments = documents.filter(doc => {
@@ -49,8 +51,8 @@ export function DocumentSidebar({ documents, onDocumentSelect }: DocumentSidebar
   };
 
   const handleDocumentClick = (document: Document) => {
-    // Open PDF in new tab with properly encoded filename
-    window.open(`pdf/${encodeURIComponent(document.filename)}`, '_blank');
+    // Open PDF in viewer modal
+    setSelectedPDF(document);
     
     // Notify parent component
     onDocumentSelect?.(document);
@@ -186,6 +188,16 @@ export function DocumentSidebar({ documents, onDocumentSelect }: DocumentSidebar
             </div>
           </div>
         </>
+      )}
+      
+      {/* PDF Viewer Modal */}
+      {selectedPDF && (
+        <PDFViewer
+          filename={selectedPDF.filename}
+          title={selectedPDF.title}
+          isOpen={!!selectedPDF}
+          onClose={() => setSelectedPDF(null)}
+        />
       )}
     </div>
   );
