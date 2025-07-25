@@ -61,12 +61,12 @@ export class Orchestrator extends BaseAgent {
       steps.push(analysisStep);
       
       // Get citations from analysis step
-      const citations = analysisStep.output?.citations || this.generateCitations(searchStep.output);
+      const citations = (analysisStep.output as any)?.citations || this.generateCitations(searchStep.output);
       
       const totalTime = Date.now() - startTime;
       
       return this.createSuccessResponse({
-        response: analysisStep.output.response,
+        response: (analysisStep.output as any)?.response || "Analysis failed",
         citations,
         sessionId: input.sessionId || this.generateId(),
         processingSteps: steps,
@@ -76,7 +76,7 @@ export class Orchestrator extends BaseAgent {
     } catch (error) {
       const errorMessage = error instanceof Error ? error.message : 'Unknown orchestration error';
       this.log('error', 'Orchestration failed', { error: errorMessage, query: input.query });
-      return this.createErrorResponse(errorMessage);
+      return this.createErrorResponse(errorMessage) as AgentResponse<OrchestratorOutput>;
     }
   }
 
@@ -393,7 +393,7 @@ The regulatory scrutiny and safety concerns have had significant implications${c
       this.documentsProcessed = true;
       this.log('info', 'Document processing completed');
     } catch (error) {
-      this.log('error', 'Document processing failed', error);
+      this.log('error', 'Document processing failed', error as Record<string, unknown>);
     } finally {
       this.isProcessingDocuments = false;
     }
