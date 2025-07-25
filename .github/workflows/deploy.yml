@@ -63,8 +63,19 @@ jobs:
         module.exports = nextConfig
         EOF
         
+        # Verify environment variable is set
+        echo "🔑 Checking OpenAI API key availability..."
+        if [ -n "$NEXT_PUBLIC_OPENAI_API_KEY" ]; then
+          echo "✅ NEXT_PUBLIC_OPENAI_API_KEY is set (length: ${#NEXT_PUBLIC_OPENAI_API_KEY})"
+        else
+          echo "❌ NEXT_PUBLIC_OPENAI_API_KEY is not set"
+        fi
+        
         # Build static export with OpenAI API key
-        NEXT_PUBLIC_OPENAI_API_KEY="${{ secrets.OPENAI_API_KEY }}" npm run build
+        npm run build
+      env:
+        NODE_ENV: production
+        NEXT_PUBLIC_OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
 
     - name: Upload artifact
       uses: actions/upload-pages-artifact@v3
