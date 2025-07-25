@@ -37,7 +37,7 @@ jobs:
       run: npm run build
       env:
         NODE_ENV: production
-        # No API key needed - system works with intelligent mock responses
+        NEXT_PUBLIC_OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
 
     - name: Create static export with GitHub Pages configuration
       run: |
@@ -63,8 +63,8 @@ jobs:
         module.exports = nextConfig
         EOF
         
-        # Build static export
-        npm run build
+        # Build static export with OpenAI API key
+        NEXT_PUBLIC_OPENAI_API_KEY="${{ secrets.OPENAI_API_KEY }}" npm run build
 
     - name: Upload artifact
       uses: actions/upload-pages-artifact@v3
