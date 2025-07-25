@@ -1,14 +1,12 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
-  // Enable GitHub Pages configuration for deployment (check for CI environment)
-  ...(process.env.NODE_ENV === 'production' || process.env.GITHUB_ACTIONS) && {
-    output: 'export',
-    basePath: '/sarepta-fda-2025',
-    assetPrefix: '/sarepta-fda-2025',
-    trailingSlash: true,
-    images: {
-      unoptimized: true
-    }
+  // Always enable static export for GitHub Pages
+  output: 'export',
+  basePath: '/sarepta-fda-2025',
+  assetPrefix: '/sarepta-fda-2025',
+  trailingSlash: true,
+  images: {
+    unoptimized: true
   },
   
   // Disable ESLint during builds to avoid blocking deployment
