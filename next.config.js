@@ -3,6 +3,8 @@ const nextConfig = {
   // Enable static exports for GitHub Pages when NODE_ENV is production
   ...(process.env.NODE_ENV === 'production' && {
     output: 'export',
+    basePath: '/sarepta-fda-2025',
+    assetPrefix: '/sarepta-fda-2025',
     trailingSlash: true,
     images: {
       unoptimized: true

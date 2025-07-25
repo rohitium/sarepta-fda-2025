@@ -50,7 +50,7 @@ export function DocumentSidebar({ documents, onDocumentSelect }: DocumentSidebar
 
   const handleDocumentClick = (document: Document) => {
     // Open PDF in new tab
-    window.open(`/pdf/${document.filename}`, '_blank');
+    window.open(`pdf/${document.filename}`, '_blank');
     
     // Notify parent component
     onDocumentSelect?.(document);

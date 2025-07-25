@@ -79,7 +79,7 @@ export function ChatInterface({ onSendMessage, isLoading = false, sessionId }: C
             pdfUrl = citation.url;
           } else {
             // Fallback: construct URL from document ID
-            pdfUrl = `/pdf/${encodeURIComponent(citation.documentId)}.pdf`;
+            pdfUrl = `pdf/${encodeURIComponent(citation.documentId)}.pdf`;
           }
           
           // Open PDF in new tab

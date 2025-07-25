@@ -116,7 +116,7 @@ export function loadAllDocuments(): Document[] {
     title: generateTitle(filename),
     filename,
     category: getCategoryFromFilename(filename),
-    path: `/pdf/${encodeURIComponent(filename)}`, // Properly encode URL for spaces
+          path: `pdf/${encodeURIComponent(filename)}`, // Properly encode URL for spaces
     size: getEstimatedFileSize(filename),
     processed: false,
     uploadDate: new Date('2024-07-24'), // Use repository date
