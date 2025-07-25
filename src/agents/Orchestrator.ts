@@ -122,7 +122,10 @@ export class Orchestrator extends BaseAgent {
       let response: string;
       
       try {
-        const availableCitations = citations.map(c => `[${c.shortName}]`).join(', ');
+        // Create numbered citation map for the LLM
+        const citationMap = citations.map((c, index) => 
+          `[${index + 1}] ${c.documentTitle}`
+        ).join('\n');
         
         const messages = [
           {
@@ -131,15 +134,16 @@ export class Orchestrator extends BaseAgent {
             
             Your role is to provide accurate, factual, and unbiased analysis of FDA documents, clinical studies, press reports, and SEC filings related to Duchenne muscular dystrophy treatment.
 
-            CITATION FORMAT:
-            - Use inline citations with the exact short names provided: ${availableCitations}
-            - Cite sources directly in the text like: "The EMBARK study [Clinical Review] showed..."
-            - Use multiple sources when relevant: "Safety concerns [June-22-2023-Approval-Letter, Safety Review] include..."
-            - DO NOT use "Document 1" or numbered references
+            CRITICAL CITATION RULES:
+            - Use ONLY numbered citations: [1], [2], [3], etc.
+            - Multiple citations: [1, 2, 3] or [1, 5, 7]
+            - NEVER use document names, short names, or text in citations
+            - Examples: "The EMBARK study [1] showed safety concerns [2, 3]..."
+            - Examples: "Post-marketing surveillance [4, 5, 6] revealed hepatotoxicity..."
 
             Guidelines:
             - Base responses ONLY on the provided document context
-            - Use inline citations throughout your response
+            - Use numbered citations throughout your response
             - Distinguish between facts and interpretations
             - Acknowledge limitations and uncertainties
             - Maintain clinical and regulatory perspective
@@ -152,13 +156,16 @@ export class Orchestrator extends BaseAgent {
             Context from documents:
             ${context}
             
-            Available citations: ${availableCitations}
+            NUMBERED CITATION REFERENCE:
+            ${citationMap}
+            
+            IMPORTANT: Use ONLY the numbers [1], [2], [3], etc. in your response. Do not use document names or titles in citations.
             
             Please provide a comprehensive analysis that:
-            1. Directly addresses the question with inline citations
-            2. Uses the exact citation names provided above
-            3. Discusses both benefits and risks with sources
-            4. Notes any regulatory actions or concerns with citations
+            1. Directly addresses the question with numbered citations [1], [2], [3]
+            2. Uses multiple citations where relevant [1, 2, 3]
+            3. Discusses both benefits and risks with numbered sources
+            4. Notes any regulatory actions or concerns with numbered citations
             5. Maintains objectivity and accuracy`
           }
         ];
@@ -199,15 +206,15 @@ export class Orchestrator extends BaseAgent {
       return "No specific document context available.";
     }
     
-    // Create a map of document IDs to short names for inline citations
-    const citationMap = new Map<string, string>();
-    citations.forEach(citation => {
-      citationMap.set(citation.documentId, citation.shortName || citation.documentTitle);
+    // Create a map of document IDs to citation numbers
+    const citationMap = new Map<string, number>();
+    citations.forEach((citation, index) => {
+      citationMap.set(citation.documentId, index + 1);
     });
     
     return chunks.map((chunk) => {
-      const shortName = citationMap.get(chunk.documentId) || chunk.metadata?.documentTitle || 'Unknown';
-      return `[${shortName}]
+      const citationNumber = citationMap.get(chunk.documentId) || '?';
+      return `[${citationNumber}]
 ${chunk.content}
 ---`;
     }).join('\n\n');
@@ -216,30 +223,36 @@ ${chunk.content}
   private generateIntelligentFallback(query: string, chunks: any[], citations: Citation[]): string {
     const queryLower = query.toLowerCase();
     
-    // Create citation map for inline references
-    const citationMap = new Map<string, string>();
-    citations.forEach(citation => {
-      citationMap.set(citation.documentId, citation.shortName || citation.documentTitle);
-    });
+    // Get relevant citation numbers for different topics
+    const safetyCitations = citations
+      .map((c, index) => ({ citation: c, number: index + 1 }))
+      .filter(item => 
+        item.citation.documentTitle?.toLowerCase().includes('safety') || 
+        item.citation.documentTitle?.toLowerCase().includes('adverse') ||
+        item.citation.category === 'FDA'
+      )
+      .map(item => item.number)
+      .slice(0, 3);
     
-    // Get relevant citations for different topics
-    const safetyCitations = citations.filter(c => 
-      c.shortName?.toLowerCase().includes('safety') || 
-      c.shortName?.toLowerCase().includes('adverse') ||
-      c.category === 'FDA'
-    ).map(c => c.shortName).slice(0, 3);
+    const approvalCitations = citations
+      .map((c, index) => ({ citation: c, number: index + 1 }))
+      .filter(item => 
+        item.citation.documentTitle?.toLowerCase().includes('approval') || 
+        item.citation.documentTitle?.toLowerCase().includes('letter') ||
+        item.citation.category === 'FDA'
+      )
+      .map(item => item.number)
+      .slice(0, 2);
     
-    const approvalCitations = citations.filter(c => 
-      c.shortName?.toLowerCase().includes('approval') || 
-      c.shortName?.toLowerCase().includes('letter') ||
-      c.category === 'FDA'
-    ).map(c => c.shortName).slice(0, 2);
-    
-    const clinicalCitations = citations.filter(c => 
-      c.shortName?.toLowerCase().includes('embark') || 
-      c.shortName?.toLowerCase().includes('clinical') ||
-      c.category === 'Publication'
-    ).map(c => c.shortName).slice(0, 3);
+    const clinicalCitations = citations
+      .map((c, index) => ({ citation: c, number: index + 1 }))
+      .filter(item => 
+        item.citation.documentTitle?.toLowerCase().includes('embark') || 
+        item.citation.documentTitle?.toLowerCase().includes('clinical') ||
+        item.citation.category === 'Publication'
+      )
+      .map(item => item.number)
+      .slice(0, 3);
     
     // Analyze query intent and available chunks
     const relevantTopics = [];
@@ -293,7 +306,11 @@ The EMBARK study served as the primary basis for approval${citeText}:
     }
     
     if (relevantTopics.includes('financial implications')) {
-      const secCitations = citations.filter(c => c.category === 'SEC').map(c => c.shortName).slice(0, 2);
+      const secCitations = citations
+        .map((c, index) => ({ citation: c, number: index + 1 }))
+        .filter(item => item.citation.category === 'SEC')
+        .map(item => item.number)
+        .slice(0, 2);
       const citeText = secCitations.length > 0 ? ` [${secCitations.join(', ')}]` : '';
       response += `**Business Impact:**
 The regulatory scrutiny and safety concerns have had significant implications${citeText}:
@@ -304,8 +321,8 @@ The regulatory scrutiny and safety concerns have had significant implications${c
     }
     
     if (relevantTopics.length === 0) {
-      const allCitations = citations.slice(0, 5).map(c => c.shortName).join(', ');
-      const citeText = allCitations ? ` [${allCitations}]` : '';
+      const allCitations = citations.slice(0, 5).map((c, index) => index + 1);
+      const citeText = allCitations.length > 0 ? ` [${allCitations.join(', ')}]` : '';
       response += `I found relevant information across multiple document categories${citeText}. The analysis covers regulatory, clinical, and safety aspects of Elevidys gene therapy for Duchenne muscular dystrophy.\n\n`;
     }
     

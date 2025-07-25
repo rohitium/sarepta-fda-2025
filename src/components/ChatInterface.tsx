@@ -1,14 +1,11 @@
 'use client';
 
 import React, { useState, useRef, useEffect } from 'react';
-import { Send, Loader2, FileText } from 'lucide-react';
+import { Send, Loader2 } from 'lucide-react';
 import { ChatMessage, MessageRole, SendMessageRequest, Citation } from '../types/chat';
 import PDFViewer from './PDFViewer';
 
-// Helper function to escape regex special characters
-const escapeRegex = (string: string): string => {
-  return string.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
-};
+
 
 interface ChatInterfaceProps {
   onSendMessage: (request: SendMessageRequest) => Promise<ChatMessage>;
@@ -82,167 +79,18 @@ export function ChatInterface({ onSendMessage, isLoading = false, sessionId }: C
       return <div className="whitespace-pre-wrap">{content}</div>;
     }
 
-    // Create numbered citation references based on citation order
-    const citationNumbers = new Map<string, number>();
-    citations.forEach((citation, index) => {
-      const key = citation.shortName || citation.documentId;
-      if (!citationNumbers.has(key)) {
-        citationNumbers.set(key, index + 1);
-      }
-    });
-
-    // Replace inline citations with numbered references
-    let processedContent = content;
-    
-    // First, handle grouped citations in brackets [citation1, citation2, citation3]
-    const groupedCitationRegex = /\[([^\]]+)\]/g;
-    let groupMatch;
-    const processedRanges: Array<{start: number, end: number, replacement: string}> = [];
-    
-    while ((groupMatch = groupedCitationRegex.exec(content)) !== null) {
-      const citationGroup = groupMatch[1];
-      const citationParts = citationGroup.split(',').map(part => part.trim());
-      
-      // Try to match each part to a citation
-      const matchedNumbers: number[] = [];
-      
-      citationParts.forEach(part => {
-        // Clean up the part (remove extra dots, trim whitespace)
-        const cleanPart = part.replace(/\.+$/, '').trim();
-        
-        citations.forEach((citation, index) => {
-          const citationNumber = index + 1;
-          
-          // More comprehensive identifier matching
-          const possibleIdentifiers = [
-            citation.shortName,
-            citation.documentTitle,
-            citation.documentId,
-            citation.documentTitle?.substring(0, 30), // Try shorter substring
-            citation.documentTitle?.substring(0, 50),
-            citation.documentTitle?.split(' - ')[0],
-            citation.documentTitle?.split(' - ')[1], // Also try part after dash
-            citation.documentTitle?.split('.')[0],
-            citation.documentTitle?.split(',')[0], // Try part before comma
-            // Try key words from title
-            ...citation.documentTitle?.split(' ').filter(word => word.length > 4) || []
-          ].filter(Boolean);
-          
-          // More aggressive matching
-          let isMatch = false;
-          for (const identifier of possibleIdentifiers) {
-            if (identifier) {
-              const identifierLower = identifier.toLowerCase();
-              const partLower = cleanPart.toLowerCase();
-              
-              // Try multiple matching strategies
-              if (
-                partLower.includes(identifierLower) || 
-                identifierLower.includes(partLower) ||
-                partLower.startsWith(identifierLower.substring(0, 15)) ||
-                identifierLower.startsWith(partLower.substring(0, 15))
-              ) {
-                isMatch = true;
-                break;
-              }
-            }
-          }
-          
-          if (isMatch && !matchedNumbers.includes(citationNumber)) {
-            matchedNumbers.push(citationNumber);
-          }
-        });
-      });
-      
-      // Sort citation numbers in ascending order and prepare replacement
-      if (matchedNumbers.length > 0) {
-        matchedNumbers.sort((a, b) => a - b);
-        const replacement = `[${matchedNumbers.join(', ')}]`;
-        processedRanges.push({
-          start: groupMatch.index,
-          end: groupMatch.index + groupMatch[0].length,
-          replacement: replacement
-        });
-      }
-    }
-    
-    // Apply replacements from right to left to preserve indices
-    processedRanges.sort((a, b) => b.start - a.start);
-    processedRanges.forEach(range => {
-      processedContent = processedContent.slice(0, range.start) + range.replacement + processedContent.slice(range.end);
-    });
-    
-    // Fallback: Handle any remaining brackets with citation-like content
-    const fallbackRegex = /\[([^\]]{20,})\]/g; // Brackets with 20+ characters (likely citations)
-    let fallbackMatch;
-    const fallbackRanges: Array<{start: number, end: number, replacement: string}> = [];
-    
-    while ((fallbackMatch = fallbackRegex.exec(processedContent)) !== null) {
-      const longContent = fallbackMatch[1];
-      
-      // If this looks like citations (contains commas and document-like text)
-      if (longContent.includes(',') && (
-        longContent.toLowerCase().includes('fda') ||
-        longContent.toLowerCase().includes('elevidys') ||
-        longContent.toLowerCase().includes('gene therapy') ||
-        longContent.toLowerCase().includes('review') ||
-        longContent.toLowerCase().includes('memo') ||
-        longContent.toLowerCase().includes('sarepta') ||
-        longContent.toLowerCase().includes('duchenne')
-      )) {
-        // Try to find citation numbers for this content
-        const fallbackNumbers: number[] = [];
-        const contentParts = longContent.split(',').map(part => part.trim());
-        
-        contentParts.forEach(part => {
-          citations.forEach((citation, index) => {
-            const citationNumber = index + 1;
-            if (citation.documentTitle && part.length > 10) {
-              // Very aggressive matching for fallback
-              const titleWords = citation.documentTitle.toLowerCase().split(' ');
-              const partWords = part.toLowerCase().split(' ');
-              
-              // Check if there's significant word overlap
-              const commonWords = titleWords.filter(word => 
-                word.length > 3 && partWords.some(pWord => pWord.includes(word) || word.includes(pWord))
-              );
-              
-              if (commonWords.length >= 2 && !fallbackNumbers.includes(citationNumber)) {
-                fallbackNumbers.push(citationNumber);
-              }
-            }
-          });
-        });
-        
-        if (fallbackNumbers.length > 0) {
-          fallbackNumbers.sort((a, b) => a - b);
-          const replacement = `[${fallbackNumbers.join(', ')}]`;
-          fallbackRanges.push({
-            start: fallbackMatch.index,
-            end: fallbackMatch.index + fallbackMatch[0].length,
-            replacement: replacement
-          });
-        }
-      }
-    }
-    
-    // Apply fallback replacements
-    fallbackRanges.sort((a, b) => b.start - a.start);
-    fallbackRanges.forEach(range => {
-      processedContent = processedContent.slice(0, range.start) + range.replacement + processedContent.slice(range.end);
-    });
-
-    // Parse content and make numbered citations clickable
+    // Simple parsing since LLM generates clean numbered citations
     const parts = [];
     let lastIndex = 0;
     
+    // Match numbered citations [1], [2, 3], [1, 5, 7], etc.
     const numberRegex = /\[(\d+(?:[,\s]+\d+)*)\]/g;
     let match;
     
-    while ((match = numberRegex.exec(processedContent)) !== null) {
+    while ((match = numberRegex.exec(content)) !== null) {
       // Add text before the citation
       if (match.index > lastIndex) {
-        parts.push(processedContent.slice(lastIndex, match.index));
+        parts.push(content.slice(lastIndex, match.index));
       }
       
       // Parse the citation numbers inside the brackets
@@ -251,10 +99,8 @@ export function ChatInterface({ onSendMessage, isLoading = false, sessionId }: C
       const citationNumbers = citationText
         .split(/[,\s]+/)
         .map(num => parseInt(num.trim()))
-        .filter(num => !isNaN(num));
-      
-      // Sort citation numbers in ascending order for display
-      citationNumbers.sort((a, b) => a - b);
+        .filter(num => !isNaN(num))
+        .sort((a, b) => a - b); // Ensure ascending order
       
       // Create clickable numbered citation links
       const citationElements = citationNumbers.map((num, index) => {
