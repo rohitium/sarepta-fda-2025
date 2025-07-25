@@ -230,10 +230,10 @@ export function ChatInterface({ onSendMessage, isLoading = false, sessionId }: C
       {/* Header */}
       <div className="border-b border-gray-200 px-6 py-4">
         <h1 className="text-xl font-semibold text-gray-900">
-          Sarepta FDA Analysis
+          Sarepta FDA 2025 RAG Agent
         </h1>
         <p className="text-sm text-gray-600">
-          Ask questions about Elevidys gene therapy documents
+          Chat with FDA documents, clinical studies, press reports, and SEC filings.
         </p>
       </div>
 
@@ -242,12 +242,6 @@ export function ChatInterface({ onSendMessage, isLoading = false, sessionId }: C
         {messages.length === 0 ? (
           <div className="flex flex-col items-center justify-center h-full text-center">
             <div className="max-w-md">
-              <h2 className="text-lg font-medium text-gray-900 mb-2">
-                Welcome to Sarepta FDA Analysis
-              </h2>
-              <p className="text-gray-700 mb-4">
-                Ask questions about Elevidys gene therapy based on FDA documents, clinical studies, press reports, and SEC filings.
-              </p>
               <div className="text-sm text-gray-600">
                 <p className="mb-2 font-medium">Try asking:</p>
                 <ul className="text-left space-y-1">
