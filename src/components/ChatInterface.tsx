@@ -137,7 +137,7 @@ export function ChatInterface({ onSendMessage, isLoading = false, sessionId }: C
       parts.push(
         <span key={match.index}>
           [{citationElements.reduce((acc, elem, index) => {
-            if (index > 0) acc.push(<span key={`comma-${index}`} className="text-gray-300">, </span>);
+            if (index > 0) acc.push(<span key={`comma-${index}`} className="text-gray-600">, </span>);
             acc.push(elem);
             return acc;
           }, [] as React.ReactNode[])}]
@@ -255,7 +255,7 @@ export function ChatInterface({ onSendMessage, isLoading = false, sessionId }: C
               <div className="flex justify-start mb-4">
                 <div className="max-w-3xl px-4 py-3 rounded-lg bg-gray-100 border">
                   <div className="flex items-center gap-2">
-                    <Loader2 className="w-4 h-4 animate-spin" />
+                    <Loader2 className="w-4 h-4 animate-spin text-gray-700" />
                     <span className="text-gray-600">Analyzing documents...</span>
                   </div>
                 </div>
