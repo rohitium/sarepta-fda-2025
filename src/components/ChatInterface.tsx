@@ -206,11 +206,6 @@ export function ChatInterface({ onSendMessage, isLoading = false, sessionId }: C
                     title={`Pages ${citation.pageNumbers.join(', ')}`}
                   >
                     <span className="font-medium">{citation.documentTitle}</span>
-                    {citation.pageNumbers.length > 0 && (
-                      <span className="text-gray-600 ml-1">
-                        (pp. {citation.pageNumbers.join(', ')})
-                      </span>
-                    )}
                   </button>
                 </div>
               ))}
