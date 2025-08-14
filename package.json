@@ -11,7 +11,12 @@
     "export": "NEXT_EXPORT=true next build",
     "deploy": "npm run export && touch out/.nojekyll && gh-pages -d out",
     "deploy:github": "npm run build:static && touch out/.nojekyll",
-    "process-pdfs": "node scripts/process-pdfs.js"
+    "process-pdfs": "node scripts/process-pdfs.js",
+    "test:components": "node test-orchestrator.mjs",
+    "test:workflow": "node test-rag-workflow.js",
+
+    "test": "npm run test:components && npm run test:workflow",
+    "pre-deploy": "npm run test && npm run build:static"
   },
   "dependencies": {
     "@radix-ui/react-dialog": "^1.1.14",
@@ -20,6 +25,7 @@
     "clsx": "^2.1.1",
     "lucide-react": "^0.525.0",
     "next": "15.4.4",
+    "node-fetch": "^3.3.2",
     "openai": "^5.10.2",
     "pdf-parse": "^1.1.1",
     "react": "19.1.0",

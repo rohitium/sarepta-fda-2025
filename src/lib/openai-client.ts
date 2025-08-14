@@ -47,9 +47,10 @@ class OpenAIClient {
     
     console.info(`🔍 Environment check: server=${isServerEnvironment}, static=${isStaticDeployment}, richContext=${hasRichContext}`);
     
-    if (!isStaticDeployment && typeof window !== 'undefined' && !hasRichContext) {
+    // Only rich context queries are allowed to call the API
+    if (!isStaticDeployment && typeof window !== 'undefined' && hasRichContext) {
       try {
-        console.info('🔄 Making secure API call...');
+        console.info('🔄 Making secure API call with rich context...');
         const response = await fetch('/api/chat', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
@@ -65,13 +66,13 @@ class OpenAIClient {
         return data.response;
       } catch (error) {
         console.error('❌ API call failed:', error);
-        // Fall through to mock response
+        // Fall through to intelligent fallback
       }
     }
     
-    // Use intelligent fallback for rich context queries or static deployments
+    // Use intelligent fallback for rich context when API fails or static deployments
     if (hasRichContext) {
-      console.info('🧠 Using intelligent analysis (rich context detected)');
+      console.info('🧠 Using intelligent analysis fallback (rich context)');
       return this.generateRichContextResponse(messages);
     }
     

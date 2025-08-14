@@ -109,12 +109,35 @@ graph TB
 ## 💻 Development Commands
 
 ```bash
-npm run dev          # Start development server
-npm run build        # Build for production
-npm run export       # Generate static files for GitHub Pages
-npm run lint         # Run ESLint
-npm run type-check   # Run TypeScript checks
+npm run dev                # Start development server
+npm run build              # Build for production (server deployment)
+npm run build:static       # Build for static deployment (GitHub Pages)
+npm run test               # Run complete test suite
+npm run test:components    # Test component structure
+npm run test:workflow      # Test RAG workflow functionality
+npm run pre-deploy         # Run tests + build (recommended before deployment)
+npm run lint               # Run ESLint
 ```
+
+## 🧪 Testing & Validation
+
+Before deployment, always run the test suite to ensure the RAG workflow is functioning correctly:
+
+```bash
+# Full validation (recommended)
+npm run pre-deploy
+
+# Individual test suites
+npm run test:components    # Validates file structure and imports
+npm run test:workflow      # Tests API, document search, citations
+```
+
+**Test Coverage:**
+- ✅ Document loading and categorization (51 PDFs across 5 categories)
+- ✅ API route functionality and error handling
+- ✅ Rich context processing and citation generation
+- ✅ Query processing pipeline (safety, clinical trials, approvals)
+- ✅ Deployment readiness validation
 
 ## 🎯 How to Use
 

@@ -380,7 +380,8 @@ This represents a significant milestone in DMD treatment while highlighting the 
       'clinical trial': ['embark', 'study', 'trial', 'efficacy', 'nsaa', 'primary endpoint', 'placebo'],
       'safety': ['adverse', 'hepatotoxicity', 'liver', 'death', 'fatality', 'hospitalization', 'toxicity'],
       'results': ['outcome', 'endpoint', 'improvement', 'benefit', 'score', 'assessment', 'data'],
-      'approval': ['fda', 'accelerated', 'pathway', 'regulatory', 'requirement', 'rems'],
+      'approval': ['fda', 'accelerated', 'pathway', 'regulatory', 'requirement', 'rems', 'approved', 'june', '2023', 'bla'],
+      'when': ['date', 'timeline', 'approved', 'june', '2023', 'approval'],
       'elevidys': ['delandistrogene', 'moxeparvovec', 'gene therapy', 'aav', 'micro-dystrophin'],
       'duchenne': ['dmd', 'muscular dystrophy', 'dystrophin', 'neuromuscular']
     };

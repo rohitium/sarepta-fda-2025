@@ -56,12 +56,23 @@ export class Orchestrator extends BaseAgent {
       const searchStep = await this.performSearch(input.query);
       steps.push(searchStep);
       
-      // Step 3: Generate analysis (which now includes citations)
-      const analysisStep = await this.generateAnalysis(input.query, searchStep.output as { chunks?: DocumentChunk[] });
-      steps.push(analysisStep);
+      // Step 3: Check if we found relevant documents
+      const searchResults = searchStep.output as { chunks?: DocumentChunk[] };
+      const hasRelevantDocuments = searchResults.chunks && searchResults.chunks.length > 0;
       
-      // Get citations from analysis step
-      const citations = (analysisStep.output as any)?.citations || this.generateCitations(searchStep.output);
+      let analysisStep: ProcessingStep;
+      let citations: Citation[] = [];
+      
+      if (hasRelevantDocuments) {
+        // Generate analysis with document context
+        analysisStep = await this.generateAnalysis(input.query, searchResults);
+        steps.push(analysisStep);
+        citations = (analysisStep.output as any)?.citations || this.generateCitations(searchStep.output);
+      } else {
+        // No relevant documents found - provide clear response
+        analysisStep = await this.generateNoDocumentsResponse(input.query);
+        steps.push(analysisStep);
+      }
       
       const totalTime = Date.now() - startTime;
       
@@ -390,6 +401,66 @@ The regulatory scrutiny and safety concerns have had significant implications${c
     }
     
     return name;
+  }
+
+  private async generateNoDocumentsResponse(query: string): Promise<ProcessingStep> {
+    const startTime = Date.now();
+    
+    try {
+      const queryLower = query.toLowerCase();
+      let response: string;
+      
+      // Check if query is related to our domain but we just don't have specific info
+      const isDomainRelated = queryLower.includes('elevidys') || 
+                             queryLower.includes('sarepta') || 
+                             queryLower.includes('duchenne') || 
+                             queryLower.includes('dmd') || 
+                             queryLower.includes('gene therapy') ||
+                             queryLower.includes('dystrophin');
+      
+      if (isDomainRelated) {
+        response = `I searched through my collection of 51 Sarepta/Elevidys documents (FDA reviews, clinical studies, press reports, and SEC filings), but I couldn't find specific information to answer: "${query}".
+
+The documents I have access to cover:
+• FDA approval process and regulatory communications
+• EMBARK clinical trial results and safety data
+• Post-marketing safety surveillance reports
+• SEC filings and financial communications
+• Press reports on regulatory actions
+
+Could you try rephrasing your question or asking about one of these specific areas?`;
+      } else {
+        response = `I'm specifically designed to analyze Sarepta Therapeutics' Elevidys gene therapy documents. Your question "${query}" appears to be outside my area of expertise.
+
+I can help you with questions about:
+• Elevidys FDA approval and regulatory process
+• Clinical trial results (EMBARK study)
+• Safety concerns and post-marketing surveillance
+• Manufacturing and commercial aspects
+• SEC filings and financial information
+
+Please ask a question related to Sarepta's Elevidys gene therapy for Duchenne muscular dystrophy.`;
+      }
+      
+      return {
+        agent: 'orchestrator',
+        action: 'no_documents_response',
+        input: { query },
+        output: { response },
+        timeMs: Date.now() - startTime,
+        success: true
+      };
+    } catch (error) {
+      return {
+        agent: 'orchestrator',
+        action: 'no_documents_response',
+        input: { query },
+        output: null,
+        timeMs: Date.now() - startTime,
+        success: false,
+        error: error instanceof Error ? error.message : 'No documents response failed'
+      };
+    }
   }
 
   // Helper method to process documents when needed

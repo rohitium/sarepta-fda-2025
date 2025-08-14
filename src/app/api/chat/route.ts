@@ -35,7 +35,7 @@ export async function POST(request: NextRequest) {
       }, { status: 400 });
     }
 
-    // Check if this is a rich context query for intelligent fallback
+    // Check if this is a rich context query from the Orchestrator
     const hasRichContext = messages.some((msg: any) => 
       msg.content && (
         msg.content.includes('Context from documents:') || 
@@ -43,26 +43,25 @@ export async function POST(request: NextRequest) {
       )
     );
 
+    // SECURITY: Only allow queries that come through the Orchestrator with document context
+    if (!hasRichContext) {
+      console.log('🚫 Direct query blocked - must use UI workflow');
+      return NextResponse.json({ 
+        response: "Direct API queries are not allowed. Please use the web interface at http://localhost:3000 to interact with the Sarepta analysis system. All queries must go through the document retrieval and analysis workflow."
+      }, { status: 400 });
+    }
+
     const client = await getOpenAIClient();
     
     if (!client) {
-      console.log('⚠️ No OpenAI client available - using fallbacks');
-      
-      if (hasRichContext) {
-        console.log('🧠 Rich context detected - using intelligent fallback (no API key)');
-        return NextResponse.json({ 
-          response: generateIntelligentResponse(messages)
-        });
-      }
-      
-      // Fallback response when no API key is available for simple queries
+      console.log('🧠 Rich context detected - using intelligent fallback (no API key)');
       return NextResponse.json({ 
-        response: "This is a demo response. To enable real AI responses, configure your OPENAI_API_KEY environment variable."
+        response: generateIntelligentResponse(messages)
       });
     }
     
-    // Use real OpenAI API for all queries when API key is available
-    console.log('🔑 Using real OpenAI API');
+    // Use real OpenAI API for queries with document context
+    console.log('🔑 Using real OpenAI API with document context');
     const completion = await client.chat.completions.create({
       model: options.model || 'gpt-4',
       messages,
