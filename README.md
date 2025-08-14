@@ -44,22 +44,26 @@ Visit `http://localhost:3000` and explore the framework locally!
 
 ## 🚀 Deployment Options
 
-### 🆓 GitHub Pages (Static Export)
-**Perfect for:** Demos, portfolios, secure deployments
+### 🆓 GitHub Pages (Live AI Integration)
+**Perfect for:** Full-featured deployment with real OpenAI responses
+
+**Setup:**
+1. Set `NEXT_PUBLIC_OPENAI_API_KEY` in your GitHub repository secrets
+2. Push to master branch - GitHub Actions handles the rest!
 
 ```bash
-# Deploy to GitHub Pages  
+# Manual deployment (optional)
 npm run build:static
-npm run deploy
+npm run deploy:github
 
-# Or use automatic GitHub Actions deployment
-git push origin main
+# Automatic deployment (recommended)
+git push origin master
 ```
 
 **Features:**
-- ✅ **100% Secure** - No API keys exposed
+- ✅ **Live AI responses** - Real OpenAI integration via GitHub Actions
+- ✅ **Secure deployment** - API key injected securely at build time
 - ✅ **Free hosting** - GitHub Pages
-- ✅ **Smart responses** - Enhanced mock responses with real data
 - ✅ **Full functionality** - Document search, PDF viewing, citations
 
 ### ⚡ Server Deployment (Vercel/Netlify)
