@@ -79,6 +79,10 @@ class OpenAIClient {
         // Get API key from environment variable (you'll need to set NEXT_PUBLIC_OPENAI_API_KEY)
         const apiKey = process.env.NEXT_PUBLIC_OPENAI_API_KEY;
         
+        console.info(`🔑 API Key available: ${apiKey ? 'YES' : 'NO'}`);
+        console.info(`🌍 Current hostname: ${typeof window !== 'undefined' ? window.location.hostname : 'server'}`);
+        console.info(`🏗️ Static deployment detected: ${isStaticDeployment}`);
+        
         if (!apiKey) {
           throw new Error('NEXT_PUBLIC_OPENAI_API_KEY not set for static deployment');
         }
