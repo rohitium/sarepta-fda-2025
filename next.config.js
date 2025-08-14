@@ -1,10 +1,10 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
-  // Always enable static export for GitHub Pages
-  output: 'export',
-  basePath: '/sarepta-fda-2025',
-  assetPrefix: '/sarepta-fda-2025',
-  trailingSlash: true,
+  // API routes enabled for secure OpenAI calls
+  // output: 'export', // Commented out to enable API routes
+  // basePath: '/sarepta-fda-2025', // Commented out for local development
+  // assetPrefix: '/sarepta-fda-2025', // Commented out for local development
+  // trailingSlash: true, // Commented out for local development
   images: {
     unoptimized: true
   },
@@ -19,11 +19,8 @@ const nextConfig = {
     ignoreBuildErrors: true,
   },
 
-  // Experimental features
-  experimental: {
-    // Enable server components
-    serverComponentsExternalPackages: ['pdf-parse'],
-  },
+  // External packages for server components
+  serverExternalPackages: ['pdf-parse'],
 
   // Webpack configuration for PDF processing
   webpack: (config, { isServer }) => {

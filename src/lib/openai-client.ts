@@ -1,23 +1,10 @@
-import OpenAI from 'openai';
-
+// Remove OpenAI import and replace with fetch-based implementation
 class OpenAIClient {
   private static instance: OpenAIClient;
-  private openai: OpenAI | null = null;
 
   private constructor() {
-    // Check for OpenAI API key from environment variables
-    const apiKey = process.env.NEXT_PUBLIC_OPENAI_API_KEY;
-    
-    if (apiKey) {
-      this.openai = new OpenAI({
-        apiKey: apiKey,
-        dangerouslyAllowBrowser: true // Required for client-side usage
-      });
-      console.info('🔑 OpenAI Client: Using real OpenAI API');
-    } else {
-      console.info('🤖 OpenAI Client: No API key found, using enhanced mock responses');
-      console.info('📝 To use real OpenAI API, add NEXT_PUBLIC_OPENAI_API_KEY to your environment');
-    }
+    // Check for API endpoint availability
+    console.info('🔑 OpenAI Client: Using secure API endpoint');
   }
 
   public static getInstance(): OpenAIClient {
@@ -47,36 +34,31 @@ class OpenAIClient {
       stream?: boolean;
     } = {}
   ): Promise<string> {
-    if (this.openai) {
-      try {
-        console.info('🔄 Making real OpenAI API call...');
-        const completion = await this.openai.chat.completions.create({
-          model: options.model || 'gpt-4',
-          messages: messages,
-          temperature: options.temperature || 0.7,
-          max_tokens: options.maxTokens || 1500,
-        });
+    try {
+      console.info('🔄 Making secure API call...');
+      const response = await fetch('/api/chat', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ messages, options })
+      });
 
-        const content = completion.choices[0]?.message?.content;
-        if (content) {
-          console.info('✅ OpenAI API response received');
-          return content;
-        } else {
-          throw new Error('No content in OpenAI response');
-        }
-      } catch (error) {
-        console.error('❌ OpenAI API call failed:', error);
-        // Fall through to mock response
+      if (!response.ok) {
+        throw new Error(`API call failed: ${response.status}`);
       }
+
+      const data = await response.json();
+      console.info('✅ API response received');
+      return data.response;
+    } catch (error) {
+      console.error('❌ API call failed:', error);
+      // Fallback: Enhanced mock response
+      console.info('🤖 Using enhanced mock response (API call failed)');
+      const query = messages[messages.length - 1]?.content || 'general query';
+      
+      return `Based on the Sarepta Elevidys clinical data and regulatory documents, I can provide analysis on: ${query}. This response uses the enhanced clinical content engine with specific data from FDA reviews, clinical trials, and regulatory submissions.
+
+Note: The API call failed. Please check your server configuration and ensure the API endpoint is working properly.`;
     }
-
-    // Fallback: Enhanced mock response
-    console.info('🤖 Using enhanced mock response (no API key or API call failed)');
-    const query = messages[messages.length - 1]?.content || 'general query';
-    
-    return `Based on the Sarepta Elevidys clinical data and regulatory documents, I can provide analysis on: ${query}. This response uses the enhanced clinical content engine with specific data from FDA reviews, clinical trials, and regulatory submissions.
-
-Note: To get real OpenAI-powered responses, please add your OpenAI API key to the NEXT_PUBLIC_OPENAI_API_KEY environment variable.`;
   }
 
   async generateStreamedCompletion(
