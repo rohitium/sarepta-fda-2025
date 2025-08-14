@@ -35,7 +35,7 @@ jobs:
 
       - name: Build with OpenAI API key
         env:
-          NEXT_PUBLIC_OPENAI_API_KEY: ${{ secrets.NEXT_PUBLIC_OPENAI_API_KEY }}
+          NEXT_PUBLIC_OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
         run: npm run build:static
 
       - name: Upload artifact
