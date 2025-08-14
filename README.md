@@ -35,34 +35,51 @@ cd sarepta-fda-2025
 npm install
 ```
 
-### 2. Environment Setup (Optional)
-```bash
-cp env.template .env.local
-# Edit .env.local to add your OpenAI API key (optional for enhanced responses)
-```
-
-### 3. Start Development Server
+### 2. Start Development Server
 ```bash
 npm run dev
 ```
 
-Visit `http://localhost:3000` and spin this app locally!
+Visit `http://localhost:3000` and explore the framework locally!
 
-## 🌐 Deploy to GitHub Pages
+## 🚀 Deployment Options
 
-### Automatic Deployment
-1. **Fork this repository**
-2. **Enable GitHub Pages**: Settings → Pages → Source: "GitHub Actions"
-3. **Push to main branch** - deployment happens automatically!
+### 🆓 GitHub Pages (Static Export)
+**Perfect for:** Demos, portfolios, secure deployments
 
-### Manual Deployment
 ```bash
-# Build for production
-npm run build
-npm run export
+# Deploy to GitHub Pages  
+npm run build:static
+npm run deploy
 
-# Deploy the 'out' folder to your hosting provider
+# Or use automatic GitHub Actions deployment
+git push origin main
 ```
+
+**Features:**
+- ✅ **100% Secure** - No API keys exposed
+- ✅ **Free hosting** - GitHub Pages
+- ✅ **Smart responses** - Enhanced mock responses with real data
+- ✅ **Full functionality** - Document search, PDF viewing, citations
+
+### ⚡ Server Deployment (Vercel/Netlify)
+**Perfect for:** Production apps with live AI
+
+```bash
+# Deploy to Vercel
+vercel
+
+# Set environment variable
+OPENAI_API_KEY=your_api_key_here
+```
+
+**Features:**
+- ✅ **Live AI responses** - Real OpenAI integration
+- ✅ **Server-side security** - API key protected
+- ✅ **Enhanced performance** - SSR optimization
+- ✅ **Scalable infrastructure** - Professional hosting
+
+> 📚 **See [DEPLOYMENT.md](DEPLOYMENT.md) for detailed deployment guide**
 
 ## 🏗️ Architecture Overview
 

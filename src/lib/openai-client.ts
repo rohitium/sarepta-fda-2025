@@ -34,31 +34,41 @@ class OpenAIClient {
       stream?: boolean;
     } = {}
   ): Promise<string> {
-    try {
-      console.info('🔄 Making secure API call...');
-      const response = await fetch('/api/chat', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ messages, options })
-      });
+    // Check if we're in a server environment (has API routes)
+    const isServerEnvironment = typeof window === 'undefined' || window.location.pathname.startsWith('/api');
+    const isStaticDeployment = process.env.NEXT_EXPORT === 'true' || 
+                               (typeof window !== 'undefined' && window.location.hostname.includes('github.io'));
+    
+    if (!isStaticDeployment && typeof window !== 'undefined') {
+      try {
+        console.info('🔄 Making secure API call...');
+        const response = await fetch('/api/chat', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ messages, options })
+        });
 
-      if (!response.ok) {
-        throw new Error(`API call failed: ${response.status}`);
+        if (!response.ok) {
+          throw new Error(`API call failed: ${response.status}`);
+        }
+
+        const data = await response.json();
+        console.info('✅ API response received');
+        return data.response;
+      } catch (error) {
+        console.error('❌ API call failed:', error);
+        // Fall through to mock response
       }
-
-      const data = await response.json();
-      console.info('✅ API response received');
-      return data.response;
-    } catch (error) {
-      console.error('❌ API call failed:', error);
-      // Fallback: Enhanced mock response
-      console.info('🤖 Using enhanced mock response (API call failed)');
-      const query = messages[messages.length - 1]?.content || 'general query';
-      
-      return `Based on the Sarepta Elevidys clinical data and regulatory documents, I can provide analysis on: ${query}. This response uses the enhanced clinical content engine with specific data from FDA reviews, clinical trials, and regulatory submissions.
-
-Note: The API call failed. Please check your server configuration and ensure the API endpoint is working properly.`;
     }
+    
+    // Fallback: Enhanced mock response for static deployments
+    const deploymentType = isStaticDeployment ? 'GitHub Pages static deployment' : 'API unavailable';
+    console.info(`🤖 Using enhanced mock response (${deploymentType})`);
+    const query = messages[messages.length - 1]?.content || 'general query';
+    
+    return `Based on the Sarepta Elevidys clinical data and regulatory documents, I can provide analysis on: ${query}. This response uses the enhanced clinical content engine with specific data from FDA reviews, clinical trials, and regulatory submissions.
+
+Note: ${isStaticDeployment ? 'This is a static deployment demo. For live AI responses, deploy with server-side API support.' : 'API call failed. Check your configuration.'}`;
   }
 
   async generateStreamedCompletion(

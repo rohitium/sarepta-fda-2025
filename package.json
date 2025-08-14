@@ -5,10 +5,12 @@
   "scripts": {
     "dev": "next dev --turbopack",
     "build": "next build",
+    "build:static": "NEXT_EXPORT=true next build",
     "start": "next start",
     "lint": "next lint",
-    "export": "next build && next export",
+    "export": "NEXT_EXPORT=true next build",
     "deploy": "npm run export && touch out/.nojekyll && gh-pages -d out",
+    "deploy:github": "npm run build:static && touch out/.nojekyll",
     "process-pdfs": "node scripts/process-pdfs.js"
   },
   "dependencies": {
